@@ -1,7 +1,14 @@
 package growthforecast
 
+/*
+
+GrowthForecast (http://kazeburo.github.io/GrowthForecast/) is a data 
+visualization tool. This library gives you an easy way to interact
+with the GrowthForecast server
+
+*/
+
 import (
-// "io/ioutil"
   "encoding/json"
   "errors"
   "fmt"
@@ -13,11 +20,19 @@ type Client struct {
   BaseURL string
 }
 
-//    client := growthforecast.NewClient("http://gf.mycompany.com")
-//    g, err := client.GetGraph("service/section/graph")
-//    if err != nil {
-//      log.Fatalf("Error while fetching graph: %s", err)
-//    }
+/*
+
+NewClient() creates a new growthforecast.Client struct. You just need
+to pass it a base URL where all API endpoints will automatically be
+generated from.
+
+    client := growthforecast.NewClient("http://gf.mycompany.com")
+    g, err := client.GetGraph("service/section/graph")
+    if err != nil {
+        log.Fatalf("Error while fetching graph: %s", err)
+    }
+
+*/
 func NewClient(base string) *Client {
   return &Client { base }
 }
@@ -84,6 +99,11 @@ func (self *Client) CreateGraph(graph *Graph) error {
   return nil
 }
 
+func (self *Client) CreateComplex(graph *ComplexGraph) error {
+  graph.Complex = true // must be true regardless
+  return nil
+}
+
 func (self *Client) GetGraph(id string) (*Graph, error) {
   dec, err := self.getDecoder(fmt.Sprintf("/json/graph/%s", id))
   if err != nil {
@@ -129,6 +149,11 @@ func (self *Client) GetGraphList() (GraphList, error) {
   return e, nil
 }
 
+/*
+
+Fetches the list of ComplexGraphs registered in the GrowthForecast instance.
+
+*/
 func (self *Client) GetComplexList() (ComplexList, error) {
   dec, err := self.getDecoder("/json/list/complex")
   if err != nil {

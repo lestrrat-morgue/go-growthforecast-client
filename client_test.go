@@ -42,5 +42,14 @@ func startGF() (func(), error) {
   }
 
   cmd := exec.Command(path)
+  err  = cmd.Start()
+  if err != nil {
+    return nil, errors.New(
+      fmt.Sprintf(
+        "Failed to start growthforecast.pl: %s",
+        err,
+      ),
+    )
+  }
   return func() { cmd.Process.Kill() }, nil
 }

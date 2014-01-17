@@ -13,6 +13,7 @@ type GraphEssential struct {
 
 type BaseGraph struct {
   GraphEssential
+  Complex bool            `json:"complex"`
   CreatedAt string        `json:"created_at"`
   Description string      `json:"description"`
   Number int              `json:"number"`
@@ -63,3 +64,8 @@ func (self *GraphEssential) GetPath() string {
   )
 }
 
+func NewComplexGraph() (*ComplexGraph) {
+  g := &ComplexGraph {}
+  g.Complex = true
+  return g
+}
