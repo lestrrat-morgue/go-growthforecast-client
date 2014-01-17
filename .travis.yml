@@ -1,0 +1,11 @@
+language: go
+go:
+    - 1.1
+    - 1.2
+    - tip
+after_success:
+    - export PATH="$HOME/gopath/bin:$PATH"
+    - goveralls $COVERALLS_TOKEN
+env:
+    global:
+        - secure: "PUMHk3jGfx/7WPrg9bI59iFoQG6IBd5tMhKwPjn7YutrgvsTI3MjFn2g+Wf7hCvp3wQgXCJEP2aOPLBe/RGK9Sp81qDwBAKGU7iR0p2MKvstgqKkh+CBybkG7YFeywPK4Ys/2kTnwBQmOJSIVOhodVyYhUzJ6yPUWbgaTv6f84k="
