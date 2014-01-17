@@ -60,7 +60,7 @@ func startGF(t *testing.T) (func(), error) {
   // XXX This needs fixing
   GF_PORT = 5125
 
-  cmd := exec.Command(path)
+  cmd := exec.Command(path, "--port=5125", "--host=127.0.0.1")
 
   stderrpipe, err := cmd.StderrPipe()
   if err != nil {
