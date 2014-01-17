@@ -64,8 +64,14 @@ func (self *GraphEssential) GetPath() string {
   )
 }
 
+func NewGraph() (*Graph) {
+  // This is here mainly for symmetry
+  return &Graph {}
+}
+
 func NewComplexGraph() (*ComplexGraph) {
   g := &ComplexGraph {}
   g.Complex = true
   return g
 }
+
