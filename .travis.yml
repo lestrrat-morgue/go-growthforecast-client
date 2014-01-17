@@ -3,6 +3,9 @@ go:
     - 1.1
     - 1.2
     - tip
+install:
+    - go get -v ./..
+    - cpanm GrowthForecast
 after_success:
     - go get github.com/mattn/goveralls
     - go get github.com/axw/gocov/gocov

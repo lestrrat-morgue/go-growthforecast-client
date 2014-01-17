@@ -81,7 +81,7 @@ func (self *Client) CreateGraph(graph *Graph) error {
   if graph.Color != "" {
     values.Add("color", graph.Color)
   }
-  url := self.createURL(graph.GetPath())
+  url := self.createURL(fmt.Sprintf("api/%s", graph.GetPath()))
   res, err := http.PostForm(url, values)
   if err != nil {
     return err
