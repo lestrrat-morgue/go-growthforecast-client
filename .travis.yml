@@ -5,8 +5,9 @@ go:
     - tip
 install:
     - go get -v ./...
-    - curl -L http://cpanmin.us | perl - -L=local App::cpanminus
+    - curl -L http://cpanmin.us | perl - -L=`pwd`/local App::cpanminus
     - export PATH=`pwd`/local/bin:$PATH
+    - env
     - cpanm GrowthForecast
 after_success:
     - go get github.com/mattn/goveralls
