@@ -4,7 +4,7 @@ go:
     - 1.2
     - tip
 install:
-    - go get -v ./..
+    - go get -v ./...
     - cpanm GrowthForecast
 after_success:
     - go get github.com/mattn/goveralls
