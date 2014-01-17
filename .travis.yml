@@ -8,6 +8,9 @@ install:
     - curl -L http://cpanmin.us | perl - -L ./local App::cpanminus
     - export PATH=./local/bin:$PATH
     - cpanm -n -L ./local GrowthForecast
+script:
+    - export PATH=./local/bin:$PATH
+    - go test -v ./...
 after_success:
     - go get github.com/mattn/goveralls
     - go get github.com/axw/gocov/gocov
