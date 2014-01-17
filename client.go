@@ -6,24 +6,28 @@ import (
   "errors"
   "fmt"
   "net/http"
+  "net/url"
 )
 
 type Client struct {
-  Host string
-  Port int
+  BaseURL string
 }
 
-func NewClient(host string, port int) *Client {
-  return &Client { host, port }
+//    client := growthforecast.NewClient("http://gf.mycompany.com")
+//    g, err := client.GetGraph("service/section/graph")
+//    if err != nil {
+//      log.Fatalf("Error while fetching graph: %s", err)
+//    }
+func NewClient(base string) *Client {
+  return &Client { base }
+}
+
+func (self *Client) createURL(path string) string {
+  return fmt.Sprintf("%s/%s", self.BaseURL, path)
 }
 
 func (self *Client) getJSON(path string) (*http.Response, error) {
-  url := fmt.Sprintf(
-    "http://%s:%d%s",
-    self.Host,
-    self.Port,
-    path,
-  )
+  url := self.createURL(path)
   res, err := http.Get(url)
   if err != nil {
     return nil, err
@@ -48,6 +52,36 @@ func (self *Client) getDecoder(path string) (*json.Decoder, error) {
   }
 
   return json.NewDecoder(res.Body), nil
+}
+
+// Note that when you create a graph, you can only specify the basic 
+// parameter
+func (self *Client) CreateGraph(graph *Graph) error {
+  values := url.Values{
+    "number": {fmt.Sprintf("%d",graph.Number)},
+  }
+  if graph.Mode != "" {
+    values.Add("mode", graph.Mode)
+  }
+  if graph.Color != "" {
+    values.Add("color", graph.Color)
+  }
+  url := self.createURL(graph.GetPath())
+  res, err := http.PostForm(url, values)
+  if err != nil {
+    return err
+  }
+
+  if res.StatusCode != 200 {
+    return errors.New(
+      fmt.Sprintf(
+        "HTTP request to %s failed",
+        url,
+      ),
+    )
+  }
+
+  return nil
 }
 
 func (self *Client) GetGraph(id string) (*Graph, error) {

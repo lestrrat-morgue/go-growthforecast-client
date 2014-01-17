@@ -13,11 +13,11 @@ type GraphEssential struct {
 
 type BaseGraph struct {
   GraphEssential
-  CreatedAt string     `json:"created_at"`
+  CreatedAt string        `json:"created_at"`
   Description string      `json:"description"`
   Number int              `json:"number"`
   Sort int                `json:"sort"`
-  UpdatedAt string     `json:"updated_at"`
+  UpdatedAt string        `json:"updated_at"`
 }
 
 type Graph struct {
