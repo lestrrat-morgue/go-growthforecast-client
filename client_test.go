@@ -4,14 +4,20 @@ import (
   "bufio"
   "errors"
   "fmt"
+  "math/rand"
   "net"
   "os"
   "os/exec"
+  "syscall"
   "testing"
   "time"
 )
 
 var GF_PORT int
+
+func init () {
+  rand.Seed(time.Now().UnixNano())
+}
 
 func CreateClient() (*Client) {
   return NewClient(fmt.Sprintf("http://127.0.0.1:%d", GF_PORT))
@@ -57,10 +63,24 @@ func startGF(t *testing.T) (func(), error) {
     )
   }
 
-  // XXX This needs fixing
-  GF_PORT = 5125
+  for p := 50000 + rand.Intn(10000); p < 65535; p++ {
+    l, err := net.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", p))
+    if err == nil {
+      l.Close()
+      GF_PORT = p
+      break
+    }
+  }
 
-  cmd := exec.Command(path, "--port=5125", "--host=127.0.0.1")
+  if GF_PORT == 0 {
+    return nil, errors.New("Could not find an empty port")
+  }
+
+  cmd := exec.Command(
+    path,
+    fmt.Sprintf("--port=%d", GF_PORT),
+    "--host=127.0.0.1",
+  )
 
   stderrpipe, err := cmd.StderrPipe()
   if err != nil {
@@ -102,7 +122,7 @@ func startGF(t *testing.T) (func(), error) {
   killproc := func() {
     killed = true
     t.Logf("Killing growthforecast.pl")
-    cmd.Process.Kill()
+    cmd.Process.Signal(syscall.SIGTERM)
   }
   defer func() {
     if err := recover(); err != nil {
@@ -123,6 +143,7 @@ func startGF(t *testing.T) (func(), error) {
   }
 
   if ! started {
+    killproc()
     return nil, errors.New(
       fmt.Sprintf(
         "Failed to connect to port %d",
@@ -147,8 +168,12 @@ func startGF(t *testing.T) (func(), error) {
     }(p.Out, p.Rdr)
   }
 
-  t.Logf("growthforecast.pl started")
-  go cmd.Wait()
+  t.Logf("growthforecast.pl started on port %d", GF_PORT)
+  go func() {
+    t.Logf("Wait")
+    cmd.Wait()
+    t.Logf("Done wait")
+  }()
 
   return killproc, nil
 }
