@@ -6,14 +6,13 @@ go:
 install:
     - go get -v ./...
     - curl -L http://cpanmin.us | perl - -L ./local App::cpanminus
-    - export PATH=./local/bin:$PATH
-    - cpanm -n -L ./local GrowthForecast
-script: env PERL5OPT=-Ilocal/lib/perl5 PATH=./local/bin:$PATH go test -v ./...
+    - cpanm -q -n -L ./local GrowthForecast
+script: go test -v ./...
 after_success:
     - go get github.com/mattn/goveralls
-    - go get github.com/axw/gocov/gocov
-    - go get code.google.com/p/go.tools/cmd/cover
-    - env PERL5OPT=-Ilocal/lib/perl5 PATH="$HOME/gopath/bin:./local/bin:$PATH" goveralls $COVERALLS_TOKEN
+    - go get github.com/axw/env PERL5OPT=-Ilocal/lib/perl5 PATH="$HOME/gopath/bin:./local/bin:$PATH" goveralls $COVERALLS_TOKEN
 env:
     global:
+        - PERL5OPT=-Ilocal/lib/perl5
+        - PATH=$HOME/gopath/bin:local/bin:$PATH
         - secure: "PUMHk3jGfx/7WPrg9bI59iFoQG6IBd5tMhKwPjn7YutrgvsTI3MjFn2g+Wf7hCvp3wQgXCJEP2aOPLBe/RGK9Sp81qDwBAKGU7iR0p2MKvstgqKkh+CBybkG7YFeywPK4Ys/2kTnwBQmOJSIVOhodVyYhUzJ6yPUWbgaTv6f84k="
