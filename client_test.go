@@ -62,6 +62,22 @@ func TestBasic(t *testing.T) {
       t.Errorf("Fetched graph should not be marked as complex")
     }
   }
+
+  g.GraphName = "colored"
+  g.Color = "#ABCDEF"
+  err = c.CreateGraph(g)
+  if err != nil {
+    t.Errorf("Failed to create graph with color: %s", err)
+  }
+
+  fetched, err = c.GetGraph(g.GetPath())
+  if err != nil {
+    t.Errorf("Failed to fetch graph: %s", err)
+  } else {
+    if g.Color != "#ABCDEF" {
+      t.Errorf("Expected color to be the same, but got %s", g.Color)
+    }
+  }
 }
 
 func startGF(t *testing.T) (func(), error) {
@@ -149,6 +165,7 @@ func startGF(t *testing.T) (func(), error) {
   for timeout := time.Now().Add(10 * time.Second); timeout.After(time.Now()); {
     _, err := net.Dial("tcp", addr)
     if err == nil {
+      t.Logf("Successfully connected to %s", addr)
       started = true
       break
     }
