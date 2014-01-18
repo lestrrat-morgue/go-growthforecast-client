@@ -10,7 +10,9 @@ install:
 script: go test -v ./...
 after_success:
     - go get github.com/mattn/goveralls
-    - go get github.com/axw/env PERL5OPT=-Ilocal/lib/perl5 PATH="$HOME/gopath/bin:./local/bin:$PATH" goveralls $COVERALLS_TOKEN
+    - go get github.com/axw/gocov/gocov
+    - go get code.google.com/p/go.tools/cmd/cover
+    - goveralls $COVERALLS_TOKEN
 env:
     global:
         - PERL5OPT=-Ilocal/lib/perl5
