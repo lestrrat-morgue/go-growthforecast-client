@@ -46,9 +46,21 @@ func TestBasic(t *testing.T) {
   g.SectionName = "motor"
   g.GraphName   = "oil"
   err = c.CreateGraph(g)
-
   if err != nil {
     t.Errorf("Failed to create graph: %s", err)
+  }
+
+  fetched, err := c.GetGraph(g.GetPath())
+  if err != nil {
+    t.Errorf("Failed to fetch graph: %s", err)
+  } else {
+    if g.ServiceName != fetched.ServiceName || g.SectionName != fetched.SectionName || g.GraphName != fetched.GraphName {
+      t.Errorf("Graph name did not match?!")
+    }
+
+    if fetched.Complex {
+      t.Errorf("Fetched graph should not be marked as complex")
+    }
   }
 }
 
@@ -172,7 +184,6 @@ func startGF(t *testing.T) (func(), error) {
 
   t.Logf("growthforecast.pl started on port %d", GF_PORT)
   go func() {
-    t.Logf("Wait")
     cmd.Wait()
     t.Logf("Done wait")
   }()

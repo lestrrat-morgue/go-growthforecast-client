@@ -14,6 +14,7 @@ import (
   "fmt"
   "net/http"
   "net/url"
+  "strings"
 )
 
 type Client struct {
@@ -38,6 +39,9 @@ func NewClient(base string) *Client {
 }
 
 func (self *Client) createURL(path string) string {
+  if strings.HasPrefix(path, "/") {
+    path = path[1:len(path)]
+  }
   return fmt.Sprintf("%s/%s", self.BaseURL, path)
 }
 
