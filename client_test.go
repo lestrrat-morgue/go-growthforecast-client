@@ -78,6 +78,25 @@ func TestBasic(t *testing.T) {
       t.Errorf("Expected color to be the same, but got %s", g.Color)
     }
   }
+
+  list, err := c.GetGraphList()
+  if err != nil {
+    t.Errorf("Failed to fetch graph list: %s", err)
+  } else {
+    if len(list) != 2 {
+      t.Errorf("Expected to receive 2 graphs, got %d", len(list))
+    }
+
+    for _, v := range list {
+      path := v.GetPath()
+      switch (path) {
+      case "acme/motor/oil", "acme/motor/colored":
+        // no op
+      default:
+        t.Errorf("Unexpected graph %s retrieved from GetGraphList", path)
+      }
+    }
+  }
 }
 
 func startGF(t *testing.T) (func(), error) {
