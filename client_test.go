@@ -108,6 +108,7 @@ func startGF(t *testing.T) (func(), error) {
     { os.Stderr, bufio.NewReader(stderrpipe) },
   }
 
+  t.Logf("Starting growthforecast.pl as: %v", cmd.Args)
   err  = cmd.Start()
   if err != nil {
     return nil, errors.New(
