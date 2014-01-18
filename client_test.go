@@ -140,6 +140,7 @@ func startGF(t *testing.T) (func(), error) {
       started = true
       break
     }
+    t.Logf("Failed to connect to %s: %s", addr, err)
     time.Sleep(1 * time.Second)
   }
 
