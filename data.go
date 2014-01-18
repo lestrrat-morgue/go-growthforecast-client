@@ -21,6 +21,10 @@ type BaseGraph struct {
   UpdatedAt string        `json:"updated_at"`
 }
 
+const MODE_COUNT    = "count"
+const MODE_GAUGE    = "gauge"
+const MODE_MODIFIED = "modified"
+const MODE_DEFAULT  = MODE_GAUGE
 type Graph struct {
   BaseGraph
   Adjust string           `json:"adjust"`
@@ -65,8 +69,9 @@ func (self *GraphEssential) GetPath() string {
 }
 
 func NewGraph() (*Graph) {
-  // This is here mainly for symmetry
-  return &Graph {}
+  g := &Graph {}
+  g.Mode = MODE_DEFAULT
+  return g
 }
 
 func NewComplexGraph() (*ComplexGraph) {
