@@ -13,7 +13,7 @@ after_success:
     - go get github.com/mattn/goveralls
     - go get github.com/axw/gocov/gocov
     - go get code.google.com/p/go.tools/cmd/cover
-    - env PATH="$HOME/gopath/bin:./local/bin:$PATH" goveralls $COVERALLS_TOKEN
+    - env PERL5OPT=-Ilocal/lib/perl5 PATH="$HOME/gopath/bin:./local/bin:$PATH" goveralls $COVERALLS_TOKEN
 env:
     global:
         - secure: "PUMHk3jGfx/7WPrg9bI59iFoQG6IBd5tMhKwPjn7YutrgvsTI3MjFn2g+Wf7hCvp3wQgXCJEP2aOPLBe/RGK9Sp81qDwBAKGU7iR0p2MKvstgqKkh+CBybkG7YFeywPK4Ys/2kTnwBQmOJSIVOhodVyYhUzJ6yPUWbgaTv6f84k="
