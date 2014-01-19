@@ -29,7 +29,7 @@ to pass it a base URL where all API endpoints will automatically be
 generated from.
 
     client := growthforecast.NewClient("http://gf.mycompany.com")
-    g, err := client.GetGraph("service/section/graph")
+    g, err := client.GetGraphByPath("service/section/graph")
     if err != nil {
         log.Fatalf("Error while fetching graph: %s", err)
     }
@@ -74,8 +74,13 @@ func (self *Client) getDecoder(path string) (*json.Decoder, error) {
   return json.NewDecoder(res.Body), nil
 }
 
-// Note that when you create a graph, you can only specify the basic 
-// parameter
+/*
+
+Sends a request to the GrowthForecast server to create a graph. 
+Returns the new Graph created by this operation. This return value is
+useful to grab server generated parameters such as the grah ID.
+
+*/
 func (self *Client) CreateGraph(graph *Graph) (*Graph, error) {
   values := url.Values{
     "number": {fmt.Sprintf("%d",graph.Number)},
