@@ -9,6 +9,7 @@ with the GrowthForecast server
 */
 
 import (
+  "bytes"
   "encoding/json"
   "errors"
   "fmt"
@@ -75,7 +76,7 @@ func (self *Client) getDecoder(path string) (*json.Decoder, error) {
 
 // Note that when you create a graph, you can only specify the basic 
 // parameter
-func (self *Client) CreateGraph(graph *Graph) error {
+func (self *Client) CreateGraph(graph *Graph) (*Graph, error) {
   values := url.Values{
     "number": {fmt.Sprintf("%d",graph.Number)},
   }
@@ -88,11 +89,11 @@ func (self *Client) CreateGraph(graph *Graph) error {
   url := self.createURL(fmt.Sprintf("api/%s", graph.GetPath()))
   res, err := http.PostForm(url, values)
   if err != nil {
-    return err
+    return nil, err
   }
 
   if res.StatusCode != 200 {
-    return errors.New(
+    return nil, errors.New(
       fmt.Sprintf(
         "HTTP request to %s failed",
         url,
@@ -100,16 +101,102 @@ func (self *Client) CreateGraph(graph *Graph) error {
     )
   }
 
-  return nil
+  var jres struct {
+    Data Graph      `json:"data"`
+    Error int       `json:"error"`
+  }
+  dec := json.NewDecoder(res.Body)
+  err = dec.Decode(&jres)
+  if err != nil {
+    return nil, errors.New(
+      fmt.Sprintf(
+        "Failed to decode JSON: %s",
+        err,
+      ),
+    )
+  }
+
+  if jres.Error != 0 {
+    return nil, errors.New(
+      fmt.Sprintf(
+        "Error response: %s",
+        jres.Error,
+      ),
+    )
+  }
+
+  return &jres.Data, nil
 }
 
-func (self *Client) CreateComplex(graph *ComplexGraph) error {
-  graph.Complex = true // must be true regardless
-  return nil
+func (self *Client) CreateComplex(graph *ComplexGraph) (*ComplexGraph, error) {
+  payload, err := json.Marshal(graph)
+  if err != nil {
+    return nil, errors.New(
+      fmt.Sprintf(
+        "Failed to encode json data: %s", err,
+      ),
+    )
+  }
+
+  url := self.createURL("json/create/complex")
+  res, err := http.Post(
+    url,
+    "application/json",
+    bytes.NewReader(payload),
+  )
+  if err != nil {
+    return nil, errors.New(
+      fmt.Sprintf(
+        "Failed to post to %s: %s", url, err,
+      ),
+    )
+  }
+
+  if res.StatusCode != 200 {
+    return nil, errors.New(
+      fmt.Sprintf(
+        "HTTP request to %s failed with %s",
+        url,
+        res.Status,
+      ),
+    )
+  }
+
+  var jres struct {
+    Location string `json:"location"`
+    Error int
+  }
+  dec := json.NewDecoder(res.Body)
+  err = dec.Decode(&jres)
+  if err != nil {
+    return nil, errors.New(
+      fmt.Sprintf(
+        "Failed to decode JSON: %s",
+        err,
+      ),
+    )
+  }
+
+  if jres.Error != 0 {
+    return nil, errors.New(
+      fmt.Sprintf(
+        "Error response: %s",
+        jres.Error,
+      ),
+    )
+  }
+
+  return self.GetComplexByPath(graph.GetPath())
 }
 
-func (self *Client) GetGraph(id string) (*Graph, error) {
-  dec, err := self.getDecoder(fmt.Sprintf("/json/graph/%s", id))
+func (self *Client) GetGraph(id int) (*Graph, error) {
+  // It's actually exactly the same as GetGraphByPath, but we just
+  // implement this conversion for easy of use
+  return self.GetGraphByPath(fmt.Sprintf("%d", id))
+}
+
+func (self *Client) GetGraphByPath(path string) (*Graph, error) {
+  dec, err := self.getDecoder(fmt.Sprintf("/json/graph/%s", path))
   if err != nil {
     return nil, err
   }
@@ -123,8 +210,12 @@ func (self *Client) GetGraph(id string) (*Graph, error) {
   return &e, nil
 }
 
-func (self *Client) GetComplex(id string) (*ComplexGraph, error){
-  dec, err := self.getDecoder(fmt.Sprintf("/json/complex/%s", id))
+func (self *Client) GetComplex(id int) (*ComplexGraph, error){
+  return self.GetComplexByPath(fmt.Sprintf("%d", id))
+}
+
+func (self *Client) GetComplexByPath(path string) (*ComplexGraph, error){
+  dec, err := self.getDecoder(fmt.Sprintf("/json/complex/%s", path))
   if err != nil {
     return nil, err
   }

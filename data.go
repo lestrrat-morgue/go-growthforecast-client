@@ -6,7 +6,7 @@ import (
 
 type GraphEssential struct {
   GraphName string        `json:"graph_name"`
-  Id int                  `json:"id"`
+  Id int                  `json:"id,omitempty"`
   SectionName string      `json:"section_name"`
   ServiceName string      `json:"service_name"`
 }
@@ -14,17 +14,28 @@ type GraphEssential struct {
 type BaseGraph struct {
   GraphEssential
   Complex bool            `json:"complex"`
-  CreatedAt string        `json:"created_at"`
-  Description string      `json:"description"`
+  CreatedAt string        `json:"created_at,omitempty"`
+  Description string      `json:"description,omitempty"`
   Number int              `json:"number"`
   Sort int                `json:"sort"`
-  UpdatedAt string        `json:"updated_at"`
+  Type string             `json:"type"`
+  UpdatedAt string        `json:"updated_at,omitempty"`
 }
 
-const MODE_COUNT    = "count"
-const MODE_GAUGE    = "gauge"
-const MODE_MODIFIED = "modified"
-const MODE_DEFAULT  = MODE_GAUGE
+const MODE_COUNT      = "count"
+const MODE_GAUGE      = "gauge"
+const MODE_MODIFIED   = "modified"
+const MODE_DEFAULT    = MODE_GAUGE
+
+const GMODE_GAUGE     = "gauge"
+const GMODE_SUBTRACT  = "subtract"
+const GMODE_DEFAULT   = GMODE_GAUGE
+
+const TYPE_AREA       = "AREA"
+const TYPE_LINE1      = "LINE1"
+const TYPE_LINE2      = "LINE2"
+const TYPE_DEFAULT    = TYPE_AREA
+
 type Graph struct {
   BaseGraph
   Adjust string           `json:"adjust"`
@@ -38,7 +49,6 @@ type Graph struct {
   Stype string            `json:"stype"`
   Sllimit int             `json:"sllimit"`
   Sulimit int             `json:"sulimit"`
-  Type string             `json:"type"`
   Ulimit int              `json:"ulimit"`
   Unit string             `json:"unit"`
 }
@@ -47,7 +57,7 @@ type ComplexGraphData struct {
   Gmode string            `json:"gmode"`
   Stack bool              `json:"stack"`
   Type string             `json:"type"`
-  GraphId string          `json:"graph_id"`
+  GraphId int             `json:"graph_id"`
 }
 
 type ComplexGraph struct {
@@ -70,7 +80,9 @@ func (self *GraphEssential) GetPath() string {
 
 func NewGraph() (*Graph) {
   g := &Graph {}
-  g.Mode = MODE_DEFAULT
+  g.Gmode = GMODE_DEFAULT
+  g.Mode  = MODE_DEFAULT
+  g.Type  = TYPE_DEFAULT
   return g
 }
 

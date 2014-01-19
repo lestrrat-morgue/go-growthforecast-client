@@ -4,10 +4,12 @@ import (
   "bufio"
   "errors"
   "fmt"
+  "io/ioutil"
   "math/rand"
   "net"
   "os"
   "os/exec"
+  "reflect"
   "syscall"
   "testing"
   "time"
@@ -31,6 +33,49 @@ func TestSanity(t *testing.T) {
   }
 }
 
+func isGraphEqual(t *testing.T, l *Graph, r *Graph) bool {
+  return reflect.DeepEqual(l, r)
+}
+
+func isGraphValid(t *testing.T, g *Graph) bool {
+  if g.Complex {
+    t.Logf("Fetched graph should not be marked as complex")
+    return false
+  }
+
+  return true
+}
+
+func assertGraphFetch(t *testing.T, g *Graph, c *Client) {
+  fetched, err := c.GetGraph(g.Id)
+  if err != nil {
+    t.Fatalf("Failed to fetch graph by id: %s", err)
+  }
+  if ! isGraphValid(t, fetched) {
+    t.Fatalf("Graph is not valid")
+  }
+  // TODO why is MD5 not present in fetched?
+  fetched.MD5 = g.MD5
+  if ! isGraphEqual(t, g, fetched) {
+    t.Logf("Expected %+v", g)
+    t.Logf("Got %+v", fetched)
+    t.Fatalf("Graph fetched by id does not match")
+  }
+
+  fetched, err = c.GetGraphByPath(g.GetPath())
+  if err != nil {
+    t.Fatalf("Failed to fetch graph by path: %s", err)
+  }
+  if ! isGraphValid(t, fetched) {
+    t.Fatalf("Graph is not valid")
+  }
+  // TODO why is MD5 not present in fetched?
+  fetched.MD5 = g.MD5
+  if ! isGraphEqual(t, g, fetched) {
+    t.Fatalf("Graph fetched by path does not match")
+  }
+}
+
 func TestBasic(t *testing.T) {
   guard, err := startGF(t)
   if err != nil {
@@ -40,43 +85,44 @@ func TestBasic(t *testing.T) {
   }
   defer guard()
 
+  graphs := []*Graph {}
+
   c := CreateClient()
   g := NewGraph()
   g.ServiceName = "acme"
   g.SectionName = "motor"
   g.GraphName   = "oil"
-  err = c.CreateGraph(g)
+  ret, err := c.CreateGraph(g)
   if err != nil {
-    t.Errorf("Failed to create graph: %s", err)
+    t.Fatalf("Failed to create graph: %s", err)
   }
 
-  fetched, err := c.GetGraph(g.GetPath())
-  if err != nil {
-    t.Errorf("Failed to fetch graph: %s", err)
-  } else {
-    if g.ServiceName != fetched.ServiceName || g.SectionName != fetched.SectionName || g.GraphName != fetched.GraphName {
-      t.Errorf("Graph name did not match?!")
-    }
-
-    if fetched.Complex {
-      t.Errorf("Fetched graph should not be marked as complex")
-    }
+  if g.GetPath() != ret.GetPath() {
+    t.Fatalf(
+      "Paths do not match. Expected '%s', got '%s'",
+      g.GetPath(),
+      ret.GetPath(),
+    )
   }
 
+  assertGraphFetch(t, ret, c)
+  graphs = append(graphs, ret)
+
+  g = NewGraph()
+  g.ServiceName = "acme"
+  g.SectionName = "motor"
   g.GraphName = "colored"
   g.Color = "#ABCDEF"
-  err = c.CreateGraph(g)
+  ret, err = c.CreateGraph(g)
   if err != nil {
-    t.Errorf("Failed to create graph with color: %s", err)
+    t.Fatalf("Failed to create graph with color: %s", err)
   }
 
-  fetched, err = c.GetGraph(g.GetPath())
-  if err != nil {
-    t.Errorf("Failed to fetch graph: %s", err)
-  } else {
-    if g.Color != "#ABCDEF" {
-      t.Errorf("Expected color to be the same, but got %s", g.Color)
-    }
+  assertGraphFetch(t, ret, c)
+  graphs = append(graphs, ret)
+
+  if ret.Color != "#ABCDEF" {
+    t.Fatalf("Expected color to be the #ABCDEF, but got %s", ret.Color)
   }
 
   list, err := c.GetGraphList()
@@ -96,6 +142,22 @@ func TestBasic(t *testing.T) {
         t.Errorf("Unexpected graph %s retrieved from GetGraphList", path)
       }
     }
+  }
+
+  cg := NewComplexGraph()
+  cg.ServiceName  = "acme"
+  cg.SectionName  = "motor"
+  cg.GraphName    = "complex"
+  for _, g = range graphs {
+    cg.Data = append(cg.Data, ComplexGraphData {
+      GraphId:  g.Id,
+      Gmode:    g.Gmode,
+      Type:     g.Type,
+    })
+  }
+  _, err = c.CreateComplex(cg)
+  if err != nil {
+    t.Fatalf("Failed to create complex graph: %s", err)
   }
 }
 
@@ -123,10 +185,21 @@ func startGF(t *testing.T) (func(), error) {
     return nil, errors.New("Could not find an empty port")
   }
 
+  dataDir, err := ioutil.TempDir("", "go-growthforecast-client-test")
+  if err != nil {
+    return nil, errors.New(
+      fmt.Sprintf(
+        "Could not create temporary directory: %s",
+        err,
+      ),
+    )
+  }
+
   cmd := exec.Command(
     path,
     fmt.Sprintf("--port=%d", GF_PORT),
     "--host=127.0.0.1",
+    fmt.Sprintf("--data-dir=%s", dataDir),
   )
 
   stderrpipe, err := cmd.StderrPipe()
@@ -171,6 +244,7 @@ func startGF(t *testing.T) (func(), error) {
     killed = true
     t.Logf("Killing growthforecast.pl")
     cmd.Process.Signal(syscall.SIGTERM)
+    os.RemoveAll(dataDir)
   }
   defer func() {
     if err := recover(); err != nil {
@@ -181,6 +255,7 @@ func startGF(t *testing.T) (func(), error) {
 
   started := false
   addr    := fmt.Sprintf("127.0.0.1:%d", GF_PORT)
+  time.Sleep(1 * time.Second)
   for timeout := time.Now().Add(10 * time.Second); timeout.After(time.Now()); {
     _, err := net.Dial("tcp", addr)
     if err == nil {
