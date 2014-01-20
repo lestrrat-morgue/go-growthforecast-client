@@ -11,6 +11,12 @@ type GraphEssential struct {
   ServiceName string      `json:"service_name"`
 }
 
+type GraphData struct {
+  Number int              `json:"number"`
+  Color string            `json:"color"`
+  Mode string             `json:"mode"`
+}
+
 type BaseGraph struct {
   GraphEssential
   Complex bool            `json:"complex"`
@@ -22,19 +28,21 @@ type BaseGraph struct {
   UpdatedAt string        `json:"updated_at,omitempty"`
 }
 
-const MODE_COUNT      = "count"
-const MODE_GAUGE      = "gauge"
-const MODE_MODIFIED   = "modified"
-const MODE_DEFAULT    = MODE_GAUGE
-
-const GMODE_GAUGE     = "gauge"
-const GMODE_SUBTRACT  = "subtract"
-const GMODE_DEFAULT   = GMODE_GAUGE
-
-const TYPE_AREA       = "AREA"
-const TYPE_LINE1      = "LINE1"
-const TYPE_LINE2      = "LINE2"
-const TYPE_DEFAULT    = TYPE_AREA
+const (
+  MODE_COUNT string = "count"
+  MODE_GAUGE        = "gauge"
+  MODE_MODIFIED     = "modified"
+  GMODE_GAUGE       = "gauge"
+  GMODE_SUBTRACT    = "subtract"
+  TYPE_AREA         = "AREA"
+  TYPE_LINE1        = "LINE1"
+  TYPE_LINE2        = "LINE2"
+)
+const (
+  MODE_DEFAULT      = MODE_GAUGE
+  GMODE_DEFAULT     = GMODE_GAUGE
+  TYPE_DEFAULT      = TYPE_AREA
+)
 
 type Graph struct {
   BaseGraph

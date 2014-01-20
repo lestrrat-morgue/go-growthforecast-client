@@ -108,6 +108,14 @@ func TestBasic(t *testing.T) {
   assertGraphFetch(t, ret, c)
   graphs = append(graphs, ret)
 
+  err = c.Post(ret.GetPath(), &GraphData{ Number: 1 })
+  if err != nil {
+    t.Errorf(
+      "Failed to post data to %s",
+      ret.GetPath(),
+    )
+  }
+
   g = NewGraph()
   g.ServiceName = "acme"
   g.SectionName = "motor"

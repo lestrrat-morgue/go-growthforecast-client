@@ -34,6 +34,9 @@ generated from.
         log.Fatalf("Error while fetching graph: %s", err)
     }
 
+    // Add data to GrowthForecast!
+    client.Post("service/section/graph", &GraphData{ Number: 1 })
+
 */
 func NewClient(base string) *Client {
   return &Client { base }
@@ -267,5 +270,50 @@ func (self *Client) GetComplexList() (ComplexList, error) {
   }
 
   return e, nil
+}
+
+func (self *Client) Post(path string, data *GraphData) error {
+  values := url.Values {
+    "number": {fmt.Sprintf("%d", data.Number)},
+  }
+  if data.Mode != "" {
+    values.Add("mode", data.Mode)
+  }
+  if data.Color != "" {
+    values.Add("color", data.Color)
+  }
+
+  url := self.createURL(fmt.Sprintf("api/%s", path))
+  res, err := http.PostForm(url, values)
+  if err != nil {
+    return err
+  }
+
+  if res.StatusCode != 200 {
+    return errors.New(
+      fmt.Sprintf(
+        "HTTP request to %s failed with %s",
+        url,
+        res.Status,
+      ),
+    )
+  }
+
+  var jres struct {
+    Error int
+    Data  Graph
+  }
+  dec := json.NewDecoder(res.Body)
+  err  = dec.Decode(&jres)
+  if err != nil {
+    return errors.New(
+      fmt.Sprintf(
+        "Failed to decode JSON: %s",
+        err,
+      ),
+    )
+  }
+
+  return nil
 }
 
